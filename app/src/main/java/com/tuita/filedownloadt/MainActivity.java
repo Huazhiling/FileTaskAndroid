@@ -2,8 +2,6 @@ package com.tuita.filedownloadt;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +15,6 @@ import com.tuita.downloadutils.utils.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView mDownRv;
@@ -30,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
             , "https://sqimg.qq.com/qq_product_operations/im/qqlogo/logo.png"
             , "https://fmapp-download.chinafamilymart.com.cn/bg/logo.png"};
     private String[] name = {"王者荣耀", "腾讯QQ", "Fa米家"};
+    private FileDownload mFileDownload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initView();
         initData();
+        mFileDownload = FileDownload.newInstance();
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -48,10 +47,10 @@ public class MainActivity extends AppCompatActivity {
             bean.setUrl(url[i]);
             list.add(bean);
         }
+
         mAdapter.notifyDataSetChanged();
         mAdapter.setAdapterItemClick((downAdapter, view, position) -> {
-            FileDownload.newInstance()
-                    .setDownloadPosition(position)
+            mFileDownload.setDownloadPosition(position)
                     .download(list.get(position).getUrl(), LoadType.Single)
                     .setDownloadProcessListener(new DownloadProcessListener() {
                         @Override

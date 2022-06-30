@@ -20,6 +20,7 @@ public class SingleThread extends Thread {
     private String url;
     private String name;
     private FileProcess mFileProcess;
+    private String savePath;
 
     public SingleThread() {
 
@@ -29,6 +30,13 @@ public class SingleThread extends Thread {
         this.mFileProcess = fileProcess;
         this.url = fileProcess.getFileUrl();
         this.name = fileProcess.getFileName();
+        this.savePath = mFileProcess.getDefaultFileStorePath() + File.separator + name + "." + getFileFormat(mFileProcess);
+    }
+
+    private String getFileFormat(FileProcess mFileProcess) {
+        int forIndex = mFileProcess.getFileUrl().lastIndexOf(".") + 1;
+        return mFileProcess.getFileFormat() == null ? forIndex == 0 ? "file"
+                : mFileProcess.getFileUrl().substring(forIndex) : mFileProcess.getFileFormat();
     }
 
     @Override
@@ -43,7 +51,7 @@ public class SingleThread extends Thread {
             urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36");
             InputStream inStream = urlConnection.getInputStream();
             int contentLength = urlConnection.getContentLength();
-            FileOutputStream fs = new FileOutputStream(mFileProcess.getDefaultFileStorePath() + File.separator + "test.apk");
+            FileOutputStream fs = new FileOutputStream(savePath);
             byte[] buffer = new byte[102400];
             long startTime = System.currentTimeMillis();
             long saveByte = 0;
@@ -64,7 +72,7 @@ public class SingleThread extends Thread {
                 fs.write(buffer, 0, byteread);
                 fs.flush();
             }
-            mFileProcess.getDownloadProcessListener().success(new File(mFileProcess.getDefaultFileStorePath() + File.separator + "test.apk"));
+            mFileProcess.getDownloadProcessListener().success(new File(savePath));
             Looper.loop();
             fs.close();
             inStream.close();
@@ -73,6 +81,5 @@ public class SingleThread extends Thread {
         } catch (IOException e) {
             mFileProcess.getDownloadProcessListener().failed(e, e.getMessage());
         }
-
     }
 }

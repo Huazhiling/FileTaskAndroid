@@ -2,11 +2,11 @@ package com.tuita.downloadutils;
 
 import android.annotation.SuppressLint;
 
+import com.tuita.downloadutils.download.FileTaskDownloadExecute;
 import com.tuita.downloadutils.listener.DownloadProcessListener;
 import com.tuita.downloadutils.listener.FileTaskExecute;
 import com.tuita.downloadutils.res.FileProcess;
 import com.tuita.downloadutils.res.LoadType;
-import com.tuita.downloadutils.thread.AutoThread;
 import com.tuita.downloadutils.thread.BlockThread;
 import com.tuita.downloadutils.thread.SingleThread;
 
@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.HashMap;
 
 public class FileDownload {
-    private static FileDownload mFileDownLoad;
     private String mFileUrl;
     private String mFileName;
     private LoadType mLoadType;
@@ -23,12 +22,13 @@ public class FileDownload {
     private BlockThread mBlockThreadRunnable;
     private int mDownloadPosition;
     private DownloadProcessListener mDownloadProcessListener;
+    private volatile static FileDownload mFileDownLoad;
     /**
      * 任务映射
      * key - 任务Url
      * value - 任务体
      */
-    private HashMap<String, FileTaskExecute> hashMap;
+    private HashMap<String, FileTaskExecute> taskExecuteHashMap;
 
     /**
      * 默认同时下载队列
@@ -51,20 +51,18 @@ public class FileDownload {
     public synchronized static FileDownload newInstance() {
         if (mFileDownLoad == null) {
             synchronized (FileDownload.class) {
-                if (mFileDownLoad == null) {
-                    return new FileDownload();
-                }
+                mFileDownLoad = new FileDownload();
             }
         }
         return mFileDownLoad;
     }
 
-    public FileDownload() {
+    private FileDownload() {
         this.coreDownloadNum = mDefaultDownloadNum;
         this.maxDownloadNum = Integer.MAX_VALUE;
         this.mSingleThreadRunnable = new SingleThread();
         this.mBlockThreadRunnable = new BlockThread();
-        this.hashMap = new HashMap<>();
+        this.taskExecuteHashMap = new HashMap<>();
     }
 
     public FileDownload setDownloadPosition(int mDownloadPosition) {
@@ -144,18 +142,16 @@ public class FileDownload {
      * 执行下载，添加任务到队列
      */
     public void execute() {
-        buildFileConfig();
-        if (mLoadType == LoadType.Auto) {
-            new AutoThread(mFileProcessor).start();
-        } else if (mLoadType == LoadType.Single) {
-            new SingleThread(mFileProcessor).start();
-        } else if (mLoadType == LoadType.Block) {
-            new BlockThread(mFileProcessor).start();
+        if (taskExecuteHashMap.get(mFileUrl) != null) {
+            return;
         }
+        taskExecuteHashMap.put(mFileUrl, new FileTaskDownloadExecute());
+        buildFileConfig();
+        mLoadType.execute(mFileProcessor);
     }
 
     private void buildFileConfig() {
-        if(mFileUrl == null || mFileUrl.isEmpty()){
+        if (mFileUrl == null || mFileUrl.isEmpty()) {
 
             return;
         }

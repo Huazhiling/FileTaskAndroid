@@ -12,6 +12,7 @@ public class FileProcess {
     private DownloadProcessListener mDownloadProcessListener;
     private String mFileUrl;
     private String mFileName;
+    private String mFileFormat;
     private LoadType mLoadType;
     private SingleThread mSingleThreadRunnable;
     private BlockThread mBlockThreadRunnable;
@@ -19,6 +20,14 @@ public class FileProcess {
 
     public FileProcess() {
 
+    }
+
+    public String getFileFormat() {
+        return mFileFormat;
+    }
+
+    public void setFileFormat(String mFileFormat) {
+        this.mFileFormat = mFileFormat;
     }
 
     public DownloadProcessListener getDownloadProcessListener() {
